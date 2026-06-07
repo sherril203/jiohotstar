@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 
 const CategoryRow = ({ category }) => {
   const [movies, setMovies] = useState([]);
-
+const API = process.env.NEXT_PUBLIC_API_BACKEND_URL;;
   useEffect(() => {
     fetch(
-      `http://localhost:5000/category/${category}`
+      `${API}/category/${category}`
     )
       .then((res) => res.json())
       .then((data) => setMovies(data));
@@ -28,7 +28,7 @@ const CategoryRow = ({ category }) => {
             className="min-w-[180px]"
           >
             <img
-              src={`http://localhost:5000/popular/${movie.image}`}
+              src={`${API}/files/${movie.image}`}
               alt={movie.name}
               className="w-full h-[260px] rounded-lg object-cover"
             />

@@ -13,11 +13,11 @@ const Navbar = () => {
   const menuItems = [
     { icon: <TiHome />, label: "Home", href: "/" },
     { icon: <IoSearch />, label: "Search", href: "/search" },
-    { icon: <FaTv />, label: "TV", href: "/tv" },
+    { icon: <FaTv />, label: "TV", href: "/shows" },
     { icon: <LuPopcorn />, label: "Movies", href: "/movies" },
     { icon: <MdSportsCricket />, label: "Sports", href: "/sports" },
     { icon: <TbCategoryFilled />, label: "Categories", href: "/categories" },
-    { icon: <IoPersonCircleSharp />, label: "My Space", href: "/profile" },
+    { icon: <IoPersonCircleSharp />, label: "My Space", href: "/myspace" },
   ];
 
   return (
