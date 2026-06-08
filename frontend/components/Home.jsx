@@ -1,6 +1,8 @@
 "use client";
 import Link from 'next/link'
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { FaAngleLeft } from "react-icons/fa6";
+import { FaAngleRight } from "react-icons/fa";
 
 const Home = () => {
   const [sectionData, setSectionData] = useState({});
@@ -8,19 +10,22 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [categoryData, setCategoryData] = useState([]);
 
-const genreThemes = {
-  Romance: { text: "text-white", gradient: "from-rose-950 to-black" },
-  Action: { text: "text-white", gradient: "from-orange-950 to-black" },
-  Crimes: { text: "text-white", gradient: "from-purple-950 to-black" },
-  Comedy: { text: "text-white", gradient: "from-emerald-950 to-black" },
-  Drama: { text: "text-white", gradient: "from-amber-950 to-black" },
-  Family: { text: "text-white", gradient: "from-blue-950 to-black" },
-  Food: { text: "text-white", gradient: "from-lime-950 to-black" },
-  Mythology: { text: "text-white", gradient: "from-yellow-950 to-black" }
-};
+  // 1. Create refs dynamically for horizontal scrolling control
+  const rowRefs = useRef({});
+
+  const genreThemes = {
+    Romance: { text: "text-white", gradient: "from-rose-950 to-black" },
+    Action: { text: "text-white", gradient: "from-orange-950 to-black" },
+    Crimes: { text: "text-white", gradient: "from-purple-950 to-black" },
+    Comedy: { text: "text-white", gradient: "from-emerald-950 to-black" },
+    Drama: { text: "text-white", gradient: "from-amber-950 to-black" },
+    Family: { text: "text-white", gradient: "from-blue-950 to-black" },
+    Food: { text: "text-white", gradient: "from-lime-950 to-black" },
+    Mythology: { text: "text-white", gradient: "from-yellow-950 to-black" }
+  };
   
   const API = process.env.NEXT_PUBLIC_API_BACKEND_URL;
-
+  const channels = ["Star Vijay", "Asianet", "Star Maa", "Suvarna", "National Geographic"];
   const categories = ["Action", "Romance", "Crimes", "Comedy", "Drama", "Kids", "Reality", "Thriller"];
   
   const sections = [
@@ -31,24 +36,28 @@ const genreThemes = {
   const languages = ["Tamil", "English", "Malayalam", "Telugu", "Hindi"];
   const genres = ["Mythology", "Crimes", "Food", "Action", "Comedy", "Family", "Drama", "Romance"];
 
+  // 2. Core Slider Scroll Logic function
+  const scrollRow = (rowKey, direction) => {
+    const row = rowRefs.current[rowKey];
+    if (row) {
+      const scrollAmount = direction === "left" ? -500 : 500;
+      row.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
   useEffect(() => {
     const fetchPopular = async () => {
       try {
         const res = await fetch(`${API}/all`);
         const data = await res.json();
-
         const formatted = [
-          ...new Map(
-            data.map((i) => [i.category, { name: i.category }])
-          ).values(),
+          ...new Map(data.map((i) => [i.category, { name: i.category }])).values(),
         ];
-
         setPopular(formatted);
       } catch (err) {
         console.error("Popular Error:", err);
       }
     };
-
     if (API) fetchPopular();
   }, [API]);
 
@@ -73,7 +82,6 @@ const genreThemes = {
   useEffect(() => {
     const loadSections = async () => {
       const result = {};
-
       for (const sec of sections) {
         try {
           const res = await fetch(`${API}/section/${encodeURIComponent(sec)}`);
@@ -84,10 +92,8 @@ const genreThemes = {
           result[sec] = [];
         }
       }
-
       setSectionData(result);
     };
-
     if (API) loadSections();
   }, [API]);
 
@@ -96,13 +102,24 @@ const genreThemes = {
 
       {/* 🎬 DYNAMIC SECTIONS LOOP */}
       {sections.map((sec) => (
-        <div key={sec} className="w-full">
+        <div key={sec} className="w-full relative group">
           <div className="flex justify-between items-center px-2 mb-3">
             <h2 className="text-xl font-bold tracking-wide text-zinc-100">{sec}</h2> 
             <Link href="" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">View more</Link>
           </div>
 
-          <div className="flex gap-4 overflow-x-auto px-2 scrollbar-hide">
+          {/* Slider Arrows */}
+          <button onClick={() => scrollRow(sec, "left")} className="absolute left-0 top-[60%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+            <FaAngleLeft/>
+          </button>
+          <button onClick={() => scrollRow(sec, "right")} className="absolute right-0 top-[60%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+            <FaAngleRight/>
+          </button>
+
+          <div 
+            ref={(el) => (rowRefs.current[sec] = el)}
+            className="flex gap-4 "
+          >
             {(sectionData[sec] || []).map((item) => (
               <img
                 key={item._id}
@@ -116,9 +133,20 @@ const genreThemes = {
       ))}
 
       {/* 🌐 POPULAR LANGUAGES */}
-      <div className="w-full">
+      <div className="w-full relative group">
         <h2 className="text-lg font-bold mb-4 px-2 text-zinc-100 tracking-wide">Popular Languages</h2>
-        <div className="flex gap-4 overflow-x-auto px-2 scrollbar-hide">
+        
+        <button onClick={() => scrollRow("languages", "left")} className="absolute left-0 top-[65%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+          <FaAngleLeft/>
+        </button>
+        <button onClick={() => scrollRow("languages", "right")} className="absolute right-0 top-[65%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+          <FaAngleRight/>
+        </button>
+
+        <div 
+          ref={(el) => (rowRefs.current["languages"] = el)}
+          className="flex gap-4 "
+        >
           {languages.map((lang) => (
             <div 
               key={lang} 
@@ -133,11 +161,21 @@ const genreThemes = {
         </div>
       </div>
 
-      {/* 🎭 POPULAR GENRES (BORDERLESS THEMES APPLIED) */}
-      <div className="w-full">
+      {/* 🎭 POPULAR GENRES */}
+      <div className="w-full relative group">
         <h2 className="text-lg font-bold mb-4 px-2 text-zinc-100 tracking-wide">Popular Genres</h2>
-        {/* Added missing overflow-x-auto for native edge scrolling here too */}
-        <div className="flex gap-4 overflow-x-auto px-2 scrollbar-hide">
+        
+        <button onClick={() => scrollRow("genres", "left")} className="absolute left-0 top-[65%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+          <FaAngleLeft/>
+        </button>
+        <button onClick={() => scrollRow("genres", "right")} className="absolute right-0 top-[65%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+          <FaAngleRight/>
+        </button>
+
+        <div 
+          ref={(el) => (rowRefs.current["genres"] = el)}
+          className="flex gap-4 "
+        >
           {genres.map((gen) => {
             const theme = genreThemes[gen] || { text: "text-white", gradient: "from-zinc-900 to-zinc-950" };
             return (
@@ -153,10 +191,21 @@ const genreThemes = {
       </div>
 
       {/* 📺 POPULAR CHANNELS */}
-      <div className="w-full">
+      <div className="w-full relative group">
         <h1 className="text-lg font-bold px-2 mb-4 text-zinc-100 tracking-wide">Popular Channels</h1>
-        <div className="flex gap-4 overflow-x-auto px-2 scrollbar-hide">
-          {["Star Vijay", "Asianet", "Star Maa", "Suvarna", "National Geographic"].map((ch) => (
+        
+        <button onClick={() => scrollRow("channels", "left")} className="absolute left-0 top-[65%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+          <FaAngleLeft/>
+        </button>
+        <button onClick={() => scrollRow("channels", "right")} className="absolute right-0 top-[65%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+          <FaAngleRight/>
+        </button>
+
+        <div 
+          ref={(el) => (rowRefs.current["channels"] = el)}
+          className="flex gap-4 "
+        >
+          {channels.map((ch) => (
             <div 
               key={ch} 
               className="min-w-[150px] h-20 bg-zinc-900 rounded-xl flex items-center justify-center font-bold cursor-pointer transition-all shrink-0 text-sm tracking-wide text-white"
@@ -191,8 +240,18 @@ const genreThemes = {
       </div>
 
       {/* 🎬 CATEGORY RESULT DISPLAY */}
-      <div className="w-full pb-12">
-        <div className="flex gap-4 overflow-x-auto px-2 scrollbar-hide">
+      <div className="w-full pb-12 relative group">
+        <button onClick={() => scrollRow("categoryResults", "left")} className="absolute left-0 top-[50%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+          <FaAngleLeft/>
+        </button>
+        <button onClick={() => scrollRow("categoryResults", "right")} className="absolute right-0 top-[50%] -translate-y-1/2 z-10 bg-black/60 hover:bg-black/90 p-2 rounded-full text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+          <FaAngleRight/>
+        </button>
+
+        <div 
+          ref={(el) => (rowRefs.current["categoryResults"] = el)}
+          className="flex gap-4 "
+        >
           {categoryData.map((item) => (
             <img
               key={item._id}
